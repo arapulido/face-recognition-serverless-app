@@ -1,0 +1,66 @@
+service: ${opt:owner}-recognize-faces 
+
+plugins:
+  - serverless-plugin-datadog
+  - serverless-iam-roles-per-function
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  stackTags:
+    owner: ${opt:owner} 
+  tags:
+    owner: ${opt:owner} 
+
+  # TODO: Check why per function permissions don't work with dd layer
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:GetObject"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "rekognition:DetectFaces"
+        - "rekognition:SearchFacesByImage"
+      Resource: "*"
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.py
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.py
+#    - exclude-me-dir/**
+
+functions:
+  face-detection:
+    handler: functions/face_detection.handler
+    events:
+    - http:
+        path: detect-faces 
+        method: post 
+  face-search:
+    handler: functions/face_search.handler
+    environment:
+      REKOGNITION_COLLECTION_ID: ${opt:rekognition-collection-id} 
+    events:
+    - http:
+        path: search-faces 
+        method: post 
+
+resources:
+    # S3
+  - ${file(resources/s3-photo-bucket.yml)}
+
+custom:
+  datadog:
+    addLayers: true
+    apiKey: ${opt:ddApiKey}
+    flushMetricsToLogs: true

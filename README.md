@@ -1,0 +1,1 @@
+Sample serverless application
