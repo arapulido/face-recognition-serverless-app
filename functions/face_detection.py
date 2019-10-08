@@ -4,9 +4,11 @@ import requests
 
 from datadog_lambda.metric import lambda_metric
 from datadog_lambda.wrapper import datadog_lambda_wrapper
+from datadog_lambda.tracing import get_dd_trace_context
 
 import boto3
 
+@datadog_lambda_wrapper
 def handler(event, context):
     params = json.loads(event['body'])
 
@@ -14,9 +16,10 @@ def handler(event, context):
         logging.error("Validation failed")
         raise Exception("Failed to check image")
 
-    client=boto3.client('rekognition')
+    rekognition_client = boto3.client('rekognition')
+    sns_client = boto3.client('sns')
 
-    data = client.detect_faces(
+    data = rekognition_client.detect_faces(
         Image={
             'S3Object': {
                 'Bucket': params['srcBucket'],
@@ -33,7 +36,14 @@ def handler(event, context):
 
     if response.status_code != 200:
         raise Exception
-    
+
+    params['headers'] = get_dd_trace_context()
+    print(params['headers'])
+
+    sns_client.publish(
+        TopicArn='arn:aws:sns:us-east-1:172597598159:FaceDetectionTopic',
+        Message=json.dumps(params))
+
     response = {
         "statusCode": 200,
         "body": response.text

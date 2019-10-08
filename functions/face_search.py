@@ -6,6 +6,7 @@ from datadog_lambda.wrapper import datadog_lambda_wrapper
 
 import boto3
 
+@datadog_lambda_wrapper
 def handler(event, context):
     params = json.loads(event['body'])
 
