@@ -1,0 +1,6 @@
+Resources:
+  FaceDetectionTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: 'Topic to fire face detection index'
+        TopicName: FaceDetectionTopic

@@ -24,6 +24,11 @@ provider:
       Action:
         - "rekognition:DetectFaces"
         - "rekognition:SearchFacesByImage"
+        - "rekognition:IndexFaces"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "SNS:Publish"
       Resource: "*"
 
 # you can define service wide environment variables here
@@ -54,10 +59,23 @@ functions:
     - http:
         path: search-faces 
         method: post 
+  face-index:
+    handler: functions/face_index.handler
+    environment:
+      REKOGNITION_COLLECTION_ID: ${opt:rekognition-collection-id}
+    events:
+    - sns:
+        arn: !Ref FaceDetectionTopic
+        topicName: FaceDetectionTopic
+    - http:
+        path: index-faces
+        method: post
 
 resources:
     # S3
   - ${file(resources/s3-photo-bucket.yml)}
+    # SNS Topic
+  - ${file(resources/sns-topic.yml)}
 
 custom:
   datadog:
