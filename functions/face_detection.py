@@ -1,15 +1,18 @@
 import json
 import logging
 import requests
+import os
 
 from datadog_lambda.metric import lambda_metric
 from datadog_lambda.wrapper import datadog_lambda_wrapper
-from datadog_lambda.tracing import get_dd_trace_context
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core import patch_all
 
 import boto3
 
 @datadog_lambda_wrapper
 def handler(event, context):
+    patch_all()
     params = json.loads(event['body'])
 
     if 'srcBucket' not in params or 'name' not in params:
@@ -37,11 +40,8 @@ def handler(event, context):
     if response.status_code != 200:
         raise Exception
 
-    params['headers'] = get_dd_trace_context()
-    print(params['headers'])
-
     sns_client.publish(
-        TopicArn='arn:aws:sns:us-east-1:172597598159:FaceDetectionTopic',
+        TopicArn=os.environ['FACE_DETECTION_INDEX_TOPIC'],
         Message=json.dumps(params))
 
     response = {
