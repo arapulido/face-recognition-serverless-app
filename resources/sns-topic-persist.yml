@@ -1,0 +1,6 @@
+Resources:
+  FaceDetectionPersistTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: 'Topic to fire persist metadata'
+        TopicName: FaceDetectionPersistTopic

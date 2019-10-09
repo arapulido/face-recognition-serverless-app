@@ -30,6 +30,10 @@ provider:
       Action:
         - "SNS:Publish"
       Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+      Resource: "*"
 
 # you can define service wide environment variables here
 #  environment:
@@ -51,6 +55,8 @@ functions:
     - http:
         path: detect-faces 
         method: post 
+    environment:
+      FACE_DETECTION_INDEX_TOPIC: !Ref FaceDetectionIndexTopic
   face-search:
     handler: functions/face_search.handler
     environment:
@@ -63,19 +69,35 @@ functions:
     handler: functions/face_index.handler
     environment:
       REKOGNITION_COLLECTION_ID: ${opt:rekognition-collection-id}
+      FACE_DETECTION_PERSIST_TOPIC: !Ref FaceDetectionPersistTopic
     events:
     - sns:
-        arn: !Ref FaceDetectionTopic
-        topicName: FaceDetectionTopic
+        arn: !Ref FaceDetectionIndexTopic
+        topicName: FaceDetectionIndexTopic
     - http:
         path: index-faces
+        method: post
+  persist-metadata:
+    handler: functions/persist_metadata.handler
+    environment:
+      FACE_DETECTION_DDB_TABLE: !Ref FaceDetectionDDBTable
+    events:
+    - sns:
+        arn: !Ref FaceDetectionPersistTopic
+        topicName: FaceDetectionPersistTopic
+    - http:
+        path: persist-metadata
         method: post
 
 resources:
     # S3
   - ${file(resources/s3-photo-bucket.yml)}
-    # SNS Topic
-  - ${file(resources/sns-topic.yml)}
+    # SNS Topic Index
+  - ${file(resources/sns-topic-index.yml)}
+    # SNS Topic Persist
+  - ${file(resources/sns-topic-persist.yml)}
+    # DynamoDB Table
+  - ${file(resources/dynamo-table.yml)}
 
 custom:
   datadog:

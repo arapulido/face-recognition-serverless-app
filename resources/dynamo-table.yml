@@ -1,0 +1,18 @@
+Resources:
+  FaceDetectionDDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: Username
+        AttributeType: S
+      KeySchema:
+      - AttributeName: Username
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '3'
+        WriteCapacityUnits: '3'
+
+# Print out the name of the DB table that is created
+Outputs:
+  FaceDetectionDDBTableName:
+    Value: !Ref FaceDetectionDDBTable 
