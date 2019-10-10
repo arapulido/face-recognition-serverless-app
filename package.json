@@ -1,0 +1,24 @@
+{
+  "name": "face-recognition-serverless-app",
+  "version": "1.0.0",
+  "description": "Sample Serverless Application",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-plugin-datadog": "^0.5.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arapulido/face-recognition-serverless-app.git"
+  },
+  "author": "Ara Pulido",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arapulido/face-recognition-serverless-app/issues"
+  },
+  "homepage": "https://github.com/arapulido/face-recognition-serverless-app#readme"
+}
