@@ -57,6 +57,7 @@ functions:
         method: post 
     environment:
       FACE_DETECTION_INDEX_TOPIC: !Ref FaceDetectionIndexTopic
+      FACE_SEARCH_ENDPOINT: ${opt:face-search-endpoint, 'ENDPOINT_NOT_SET'}
   face-search:
     handler: functions/face_search.handler
     environment:

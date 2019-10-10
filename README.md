@@ -22,3 +22,9 @@ cd face-recognition-serverless-app
 npm install
 serverless deploy --ddApiKey <datadog_api> --owner <yourname> --rekognition-collection-id <your-rekognition-collection-id>
 ```
+
+Once it has been deployed, get the HTTP endpoint for the `face-search` function and redeploy it with the correct endpoint option:
+
+```
+serverless deploy --ddApiKey <datadog_api> --owner <yourname> --rekognition-collection-id <your-rekognition-collection-id> --face-search-endpoint <face-search-function-endpoint>
+```

@@ -35,7 +35,12 @@ def handler(event, context):
     if len(data['FaceDetails']) != 1:
         raise Exception
 
-    response = requests.post('https://llcjf8qym2.execute-api.us-east-1.amazonaws.com/dev/search-faces', event['body'])    
+    search_endpoint = os.environ['FACE_SEARCH_ENDPOINT']
+
+    if search_endpoint == 'ENDPOINT_NOT_SET':
+        raise Exception('Redeploy the application with the correct --face-search-endpoint parameter')
+
+    response = requests.post(search_endpoint, event['body'])
 
     if response.status_code != 200:
         raise Exception
