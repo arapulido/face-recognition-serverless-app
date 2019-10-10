@@ -75,9 +75,6 @@ functions:
     - sns:
         arn: !Ref FaceDetectionIndexTopic
         topicName: FaceDetectionIndexTopic
-    - http:
-        path: index-faces
-        method: post
   persist-metadata:
     handler: functions/persist_metadata.handler
     environment:
@@ -86,9 +83,6 @@ functions:
     - sns:
         arn: !Ref FaceDetectionPersistTopic
         topicName: FaceDetectionPersistTopic
-    - http:
-        path: persist-metadata
-        method: post
 
 resources:
     # S3
