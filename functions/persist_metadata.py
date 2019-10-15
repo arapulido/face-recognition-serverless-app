@@ -33,6 +33,16 @@ def handler(event, context):
         ConditionExpression='attribute_not_exists(Username)'
     )
 
+    # Count an metadata persisted
+    lambda_metric(
+        "face_recognition.images_metadata_persisted",
+        1,
+        tags=['face_id:'+params['faceId'],
+        'bucket:'+params['srcBucket'],
+        'image_name:'+params['name'],
+        'user:'+params['userId']]
+    )
+
     response = {
         "statusCode": 200,
         "body": json.dumps(data)

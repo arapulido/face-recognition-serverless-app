@@ -33,6 +33,15 @@ def handler(event, context):
     )
 
     if len(data['FaceMatches']) > 0:
+        face_id = data['FaceMatches'][0]['Face']['FaceId']
+        # Count a duplicate
+        lambda_metric(
+            "face_recognition.duplicates_found",
+            1,
+            tags=['face_id:'+face_id,
+            'bucket:'+params['srcBucket'],
+            'image_name:'+params['name']]
+        )
         raise Exception
 
     response = {

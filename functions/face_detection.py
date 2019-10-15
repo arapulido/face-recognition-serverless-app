@@ -32,7 +32,24 @@ def handler(event, context):
         Attributes=['ALL']
     )
 
-    if len(data['FaceDetails']) != 1:
+    if len(data['FaceDetails']) < 1:
+        # Count image without faces
+        lambda_metric(
+            "face_recognition.images_without_faces",
+            1,
+            tags=['bucket:'+params['srcBucket'],
+            'image_name:'+params['name']]
+        )
+        raise Exception
+
+    if len(data['FaceDetails']) > 1:
+        # Count image with more than 1 face
+        lambda_metric(
+            "face_recognition.images_with_multiple_faces",
+            1,
+            tags=['bucket:'+params['srcBucket'],
+            'image_name:'+params['name']]
+        )
         raise Exception
 
     search_endpoint = os.environ['FACE_SEARCH_ENDPOINT']

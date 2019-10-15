@@ -26,7 +26,7 @@ def handler(event, context):
     data = rekognition_client.index_faces(
         CollectionId=collection_id,
         DetectionAttributes=[],
-        ExternalImageId= params['userId'],
+        ExternalImageId=params['userId'],
         Image={
             'S3Object': {
                 'Bucket': params['srcBucket'],
@@ -36,6 +36,17 @@ def handler(event, context):
     )
 
     params['faceId'] = data['FaceRecords'][0]['Face']['FaceId']
+
+    # Count an image indexed
+    lambda_metric(
+        "face_recognition.images_indexed",
+        1,
+        tags=['face_id:'+params['faceId'],
+        'bucket:'+params['srcBucket'],
+        'image_name:'+params['name'],
+        'user:'+params['userId']]
+    )
+
     sns_client.publish(
         TopicArn=os.environ['FACE_DETECTION_PERSIST_TOPIC'],
         Message=json.dumps(params))
