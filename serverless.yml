@@ -13,6 +13,7 @@ provider:
     owner: ${opt:owner} 
   tags:
     owner: ${opt:owner} 
+    env: face-recognition
 
   # TODO: Check why per function permissions don't work with dd layer
   iamRoleStatements:
