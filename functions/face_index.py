@@ -9,14 +9,18 @@ from aws_xray_sdk.core import patch_all
 
 import boto3
 
+# Set logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 @datadog_lambda_wrapper
 def handler(event, context):
     patch_all()
     params = json.loads(event['Records'][0]['Sns']['Message'])
 
     if 'srcBucket' not in params or 'name' not in params:
-        logging.error("Validation failed")
-        raise Exception("Failed to check image")
+        logger.error("Validation failed. Missing parameters")
+        raise Exception("Missing parameters")
 
     rekognition_client = boto3.client('rekognition')
     sns_client = boto3.client('sns')

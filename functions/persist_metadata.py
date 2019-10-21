@@ -9,6 +9,10 @@ from aws_xray_sdk.core import patch_all
 
 import boto3
 
+# Set logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 @datadog_lambda_wrapper
 def handler(event, context):
     patch_all()
@@ -32,6 +36,8 @@ def handler(event, context):
         Item=dynamodb_item,
         ConditionExpression='attribute_not_exists(Username)'
     )
+
+    logging.info("Persisted data. FaceId: %s; ImageName: %s; UserId: %s", params['faceId'], params['name'], params['userId'])
 
     # Count an metadata persisted
     lambda_metric(
