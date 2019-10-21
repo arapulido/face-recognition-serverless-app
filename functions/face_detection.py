@@ -10,14 +10,18 @@ from aws_xray_sdk.core import patch_all
 
 import boto3
 
+# Set logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 @datadog_lambda_wrapper
 def handler(event, context):
     patch_all()
     params = json.loads(event['body'])
 
     if 'srcBucket' not in params or 'name' not in params:
-        logging.error("Validation failed")
-        raise Exception("Failed to check image")
+        logger.error("Validation failed. Missing parameters")
+        raise Exception("Missing parameters")
 
     rekognition_client = boto3.client('rekognition')
     sns_client = boto3.client('sns')
@@ -40,7 +44,17 @@ def handler(event, context):
             tags=['bucket:'+params['srcBucket'],
             'image_name:'+params['name']]
         )
-        raise Exception
+        logger.info('Uploaded an image without faces: %s', params['name'])
+
+        body = {"RekognitionCode": "NoFace",
+            "ImageName": params['name']}
+
+        response = {
+            "statusCode": 200,
+            "body": json.dumps(body)
+        }
+
+        return response
 
     if len(data['FaceDetails']) > 1:
         # Count image with more than 1 face
@@ -50,11 +64,22 @@ def handler(event, context):
             tags=['bucket:'+params['srcBucket'],
             'image_name:'+params['name']]
         )
-        raise Exception
+        logger.info('Uploaded an image more than 1 face: %s', params['name'])
+
+        body = {"RekognitionCode": "MultipleFace",
+            "ImageName": params['name']}
+
+        response = {
+            "statusCode": 200,
+            "body": json.dumps(body)
+        }
+
+        return response
 
     search_endpoint = os.environ['FACE_SEARCH_ENDPOINT']
 
     if search_endpoint == 'ENDPOINT_NOT_SET':
+        logger.error('FACE_SEARCH_ENDPOINT is not correctly set')
         raise Exception('Redeploy the application with the correct --face-search-endpoint parameter')
 
     response = requests.post(search_endpoint, event['body'])
@@ -62,9 +87,13 @@ def handler(event, context):
     if response.status_code != 200:
         raise Exception
 
-    sns_client.publish(
-        TopicArn=os.environ['FACE_DETECTION_INDEX_TOPIC'],
-        Message=json.dumps(params))
+    body = json.loads(response.text)
+
+    # If it was the first time that we had seen that face, index it
+    if 'RekognitionCode' not in body:
+        sns_client.publish(
+            TopicArn=os.environ['FACE_DETECTION_INDEX_TOPIC'],
+            Message=json.dumps(params))
 
     response = {
         "statusCode": 200,

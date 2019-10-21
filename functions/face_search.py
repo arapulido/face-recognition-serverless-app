@@ -8,14 +8,18 @@ from aws_xray_sdk.core import patch_all
 
 import boto3
 
+# Set logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 @datadog_lambda_wrapper
 def handler(event, context):
     patch_all()
     params = json.loads(event['body'])
 
     if 'srcBucket' not in params or 'name' not in params:
-        logging.error("Validation failed")
-        raise Exception("Failed to check image")
+        logger.error("Validation failed. Missing parameters")
+        raise Exception("Missing parameters")
 
     client=boto3.client('rekognition')
     collection_id = os.environ['REKOGNITION_COLLECTION_ID']
@@ -42,7 +46,19 @@ def handler(event, context):
             'bucket:'+params['srcBucket'],
             'image_name:'+params['name']]
         )
-        raise Exception
+
+        logger.info('Duplicated face. FaceId: %s; Image: %s', face_id, params['name'])
+
+        body = {"RekognitionCode": "Duplicated",
+            "FaceId": face_id,
+            "Name": params['name']}
+
+        response = {
+            "statusCode": 200,
+            "body": json.dumps(body)
+        }
+
+        return response
 
     response = {
         "statusCode": 200,
