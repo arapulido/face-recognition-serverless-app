@@ -23,6 +23,12 @@ def handler(event, context):
         logger.error("Validation failed. Missing parameters")
         raise Exception("Missing parameters")
 
+    search_endpoint = os.environ['FACE_SEARCH_ENDPOINT']
+
+    if search_endpoint == 'ENDPOINT_NOT_SET':
+        logger.error('FACE_SEARCH_ENDPOINT is not correctly set')
+        raise Exception('Redeploy the application with the correct --face-search-endpoint parameter')
+
     rekognition_client = boto3.client('rekognition')
     sns_client = boto3.client('sns')
 
@@ -76,11 +82,6 @@ def handler(event, context):
 
         return response
 
-    search_endpoint = os.environ['FACE_SEARCH_ENDPOINT']
-
-    if search_endpoint == 'ENDPOINT_NOT_SET':
-        logger.error('FACE_SEARCH_ENDPOINT is not correctly set')
-        raise Exception('Redeploy the application with the correct --face-search-endpoint parameter')
 
     response = requests.post(search_endpoint, event['body'])
 
