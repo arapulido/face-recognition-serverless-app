@@ -51,7 +51,7 @@ def handler(event, context):
 
         body = {"RekognitionCode": "Duplicated",
             "FaceId": face_id,
-            "Name": params['name']}
+            "ImageName": params['name']}
 
         response = {
             "statusCode": 200,
