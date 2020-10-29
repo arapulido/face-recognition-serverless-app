@@ -14,6 +14,7 @@ provider:
   tags:
     owner: ${opt:owner} 
     env: face-recognition
+    datadog_demo_keep: true
 
   # TODO: Check why per function permissions don't work with dd layer
   iamRoleStatements:
@@ -52,6 +53,8 @@ provider:
 functions:
   face-detection:
     handler: functions/face_detection.handler
+    tags:
+      service: face-detection
     events:
     - http:
         path: detect-faces 
@@ -61,6 +64,8 @@ functions:
       FACE_SEARCH_ENDPOINT: ${opt:face-search-endpoint, 'ENDPOINT_NOT_SET'}
   face-search:
     handler: functions/face_search.handler
+    tags:
+      service: face-search
     environment:
       REKOGNITION_COLLECTION_ID: ${opt:rekognition-collection-id} 
     events:
@@ -69,6 +74,8 @@ functions:
         method: post 
   face-index:
     handler: functions/face_index.handler
+    tags:
+      service: face-index
     environment:
       REKOGNITION_COLLECTION_ID: ${opt:rekognition-collection-id}
       FACE_DETECTION_PERSIST_TOPIC: !Ref FaceDetectionPersistTopic
@@ -78,6 +85,8 @@ functions:
         topicName: FaceDetectionIndexTopic
   persist-metadata:
     handler: functions/persist_metadata.handler
+    tags:
+      service: persist-metadata
     environment:
       FACE_DETECTION_DDB_TABLE: !Ref FaceDetectionDDBTable
     events:
@@ -97,6 +106,4 @@ resources:
 
 custom:
   datadog:
-    addLayers: true
-    apiKey: ${opt:ddApiKey}
-    flushMetricsToLogs: true
+    forwarder: ${opt:forwarderarn}
